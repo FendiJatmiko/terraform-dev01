@@ -30,8 +30,3 @@ variable "private_subnets_cidr" {
   description = "The CIDR block for the private subnet"
 }
 
-#locals {
-  #production_availability_zones = ["${var.region}a", "${var.region}b", "${var.region}c"]
-#}
-
-#availability_zones = data.aws_availability_zones.available.name
