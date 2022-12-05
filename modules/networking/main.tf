@@ -35,28 +35,28 @@ resource "aws_nat_gateway" "nat" {
 }
 /* Public subnet */
 resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.vpc.id
-  count      = length(var.public_subnets_cidr)
+  vpc_id = aws_vpc.vpc.id
+  count  = length(var.public_subnets_cidr)
   #cidr_block = var.vpc_cidr
-  cidr_block              = element(var.public_subnets_cidr, count.index)
+  cidr_block = element(var.public_subnets_cidr, count.index)
   #availability_zone = var.availability_zones
   availability_zone       = element(var.availability_zones, count.index)
   map_public_ip_on_launch = true
   tags = {
-    Name        = "${var.environment}-${element(var.availability_zones, count.index)}-public-subnet"
+    Name = "${var.environment}-${element(var.availability_zones, count.index)}-public-subnet"
     #Name        = "${var.environment}" - "${var.availability_zones}" - public-subnet
     Environment = "${var.environment}"
   }
 }
 /* Private subnet */
 resource "aws_subnet" "private_subnet" {
-  vpc_id = aws_vpc.vpc.id
-  count  = length(var.private_subnets_cidr)
+  vpc_id                  = aws_vpc.vpc.id
+  count                   = length(var.private_subnets_cidr)
   cidr_block              = element(var.private_subnets_cidr, count.index)
   availability_zone       = element(var.availability_zones, count.index)
   map_public_ip_on_launch = false
   tags = {
-    Name        = "${var.environment}-${element(var.availability_zones, count.index)}-private-subnet"
+    Name = "${var.environment}-${element(var.availability_zones, count.index)}-private-subnet"
     #Name        = "${var.environment}" - "${var.availability_zones}" - private_subnet
     Environment = "${var.environment}"
   }
@@ -89,14 +89,14 @@ resource "aws_route" "private_nat_gateway" {
 }
 /* Route table associations */
 resource "aws_route_table_association" "public" {
-  count = length(var.public_subnets_cidr)
-  subnet_id      = element(aws_subnet.public_subnet.*.id, count.index)
+  count     = length(var.public_subnets_cidr)
+  subnet_id = element(aws_subnet.public_subnet.*.id, count.index)
   #subnet_id      = var.public_subnets_cidr
   route_table_id = aws_route_table.public.id
 }
 resource "aws_route_table_association" "private" {
-  count = length(var.private_subnets_cidr)
-  subnet_id      = element(aws_subnet.private_subnet.*.id, count.index)
+  count     = length(var.private_subnets_cidr)
+  subnet_id = element(aws_subnet.private_subnet.*.id, count.index)
   #subnet_id      = var.private_subnets_cidr
   route_table_id = aws_route_table.private.id
 }
@@ -123,4 +123,31 @@ resource "aws_security_group" "default" {
     Environment = "${var.environment}"
   }
 }
+
+resource "aws_security_group" "web_sg" {
+  name   = "HTTP and SSH"
+  vpc_id = aws_vpc.vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 
